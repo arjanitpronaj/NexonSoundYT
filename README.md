@@ -1,6 +1,8 @@
 # NexonSoundYT
 
-NexonSoundYT is a production-ready full stack YouTube downloader built for free hosting on Vercel (frontend) and Render (backend). Paste a YouTube URL, analyze the video, choose MP4 or MP3 output, and track downloads in real time with queue controls, browser history, and polished dark or light UI.
+NexonSoundYT is a production-ready full stack YouTube downloader built for free hosting on [Vercel](https://vercel.com) (frontend) and [Render](https://render.com) (backend). Paste a YouTube URL, analyze the video, choose MP4 or MP3 output, and track downloads in real time with queue controls, browser history, and a polished dark or light UI.
+
+For the smoothest free-tier setup, keep the GitHub repository **public** so Vercel and Render can import and auto-deploy without private-repo friction.
 
 ## Features
 
@@ -46,13 +48,14 @@ NexonSoundYT/
 ├── backend/          # FastAPI API, yt-dlp jobs, FFmpeg processing
 ├── frontend/         # Next.js web app
 │   ├── app/
+│   │   └── api/      # Vercel proxy to the Render backend
 │   ├── components/
 │   ├── public/
 │   ├── styles/
 │   └── utils/
 ├── api/              # Reserved for optional edge/proxy routes
+├── Dockerfile        # Root Docker build for Render
 ├── render.yaml
-├── vercel.json
 ├── .env.example
 └── README.md
 ```
@@ -84,13 +87,14 @@ copy ..\.env.example .env.local
 npm run dev
 ```
 
-Open `http://localhost:3000` and set `NEXT_PUBLIC_API_URL=http://localhost:8000`.
+Open `http://localhost:3000`. The frontend calls the backend through `/api`, which proxies to `http://localhost:8000` in development.
 
 ## Environment Variables
 
 | Variable | Service | Description |
 | --- | --- | --- |
-| `NEXT_PUBLIC_API_URL` | Frontend | Public backend base URL |
+| `API_URL` | Vercel | Server-side backend URL used by `/api` proxy routes |
+| `NEXT_PUBLIC_API_URL` | Frontend | Optional explicit backend URL override |
 | `CORS_ORIGINS` | Backend | Comma-separated allowed frontend origins |
 | `TEMP_DIR` | Backend | Temporary download directory |
 | `MAX_PARALLEL_JOBS` | Backend | Concurrent download workers |
@@ -118,29 +122,10 @@ Open `http://localhost:3000` and set `NEXT_PUBLIC_API_URL=http://localhost:8000`
 
 Interactive docs are available at `/docs` when the backend is running.
 
-## Deployment
+## Upload to GitHub
 
-### Vercel (Frontend)
-
-1. Delete the failed Vercel project if it still has custom build or output overrides.
-2. Import the GitHub repository again in Vercel.
-3. Set **Root Directory** to `frontend`.
-4. Leave **Framework Preset** on **Next.js**.
-5. In **Build and Output Settings**, turn off every override. Use only `npm install` and `npm run build`, and leave **Output Directory** empty.
-6. Add `NEXT_PUBLIC_API_URL` with your Render backend URL.
-7. Deploy.
-
-### Render (Backend)
-
-1. Create a new Web Service from this repository.
-2. Use `render.yaml` or configure manually with `backend` as the root directory.
-3. Build with the provided `backend/Dockerfile` so FFmpeg is installed.
-4. Set `CORS_ORIGINS` to your Vercel production URL.
-5. Deploy and verify `GET /health`.
-
-## GitHub
-
-Repository: [NexonSoundYT](https://github.com/arjanitpronaj/NexonSoundYT)
+1. Create a **public** repository named `NexonSoundYT`.
+2. Push this project to the `main` branch.
 
 ```bash
 git init
@@ -150,6 +135,49 @@ git branch -M main
 git remote add origin https://github.com/arjanitpronaj/NexonSoundYT.git
 git push -u origin main
 ```
+
+If the repository is private, Vercel and Render can still work on many plans, but public is the simplest path on free tiers.
+
+## Deploy Backend to Render
+
+1. Open [Render](https://render.com) and create a **Web Service** from the GitHub repository.
+2. Use these settings:
+   - **Root Directory:** leave empty
+   - **Language / Environment:** Docker
+   - **Dockerfile Path:** `Dockerfile`
+   - **Instance Type:** Free
+   - **Health Check Path:** `/health`
+3. Add environment variable `CORS_ORIGINS` with your Vercel production URL and preview URLs, comma-separated.
+4. Deploy and verify `https://your-service.onrender.com/health`.
+
+You can also deploy with `render.yaml` using a Render Blueprint.
+
+## Deploy Frontend to Vercel
+
+1. Open [Vercel](https://vercel.com) and import the GitHub repository.
+2. Set **Root Directory** to `frontend`.
+3. Leave **Framework Preset** on **Next.js**.
+4. Do not override install, build, or output settings.
+5. Add environment variable `API_URL` with your Render backend URL, for example `https://nexonsoundyt.onrender.com`.
+6. Deploy.
+
+## Connect Frontend to Backend
+
+Production flow:
+
+1. Browser calls `https://your-vercel-app.vercel.app/api/...`
+2. Vercel proxy routes forward the request to `API_URL` on Render
+3. Render processes analyze/download jobs and returns progress and files
+
+After both services are live:
+
+1. Set `API_URL` on Vercel to the Render service URL
+2. Set `CORS_ORIGINS` on Render to your Vercel domain(s)
+3. Redeploy both services if you change environment variables
+
+## GitHub
+
+Repository: [NexonSoundYT](https://github.com/arjanitpronaj/NexonSoundYT)
 
 ## License
 
