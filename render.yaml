@@ -3,7 +3,6 @@ services:
     name: nexonsoundyt-api
     env: docker
     plan: free
-    rootDir: backend
     dockerfilePath: ./Dockerfile
     healthCheckPath: /health
     envVars:
