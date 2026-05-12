@@ -122,13 +122,13 @@ Interactive docs are available at `/docs` when the backend is running.
 
 ### Vercel (Frontend)
 
-1. Push this repository to GitHub.
-2. Import the project in Vercel.
-3. Set the root directory to `frontend`.
+1. Import the GitHub repository in Vercel.
+2. Set **Root Directory** to `frontend` before deploying.
+3. Leave **Framework Preset** on **Next.js** (do not use `Other`).
 4. Add `NEXT_PUBLIC_API_URL` with your Render backend URL.
 5. Deploy.
 
-The included `frontend/vercel.json` is compatible with the Vercel Next.js preset.
+If the import screen stays blank, remove any custom install/build commands from the URL, re-import the repo, and set only the root directory to `frontend`.
 
 ### Render (Backend)
 
@@ -140,14 +140,14 @@ The included `frontend/vercel.json` is compatible with the Vercel Next.js preset
 
 ## GitHub
 
-Repository: [NexonSoundYT](https://github.com/arjanitpronajnese/NexonSoundYT)
+Repository: [NexonSoundYT](https://github.com/arjanitpronaj/NexonSoundYT)
 
 ```bash
 git init
 git add .
 git commit -m "Initial commit"
 git branch -M main
-git remote add origin https://github.com/arjanitpronajnese/NexonSoundYT.git
+git remote add origin https://github.com/arjanitpronaj/NexonSoundYT.git
 git push -u origin main
 ```
 
