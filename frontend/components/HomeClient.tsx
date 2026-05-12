@@ -13,7 +13,8 @@ import { QueuePanel } from "@/components/QueuePanel";
 import { ToastViewport } from "@/components/ToastViewport";
 import { useToast } from "@/components/ToastProvider";
 import { UrlInputSection } from "@/components/UrlInputSection";
-import { analyzeVideo } from "@/utils/api";
+import { analyzeVideo, wakeApi } from "@/utils/api";
+import { formatApiError } from "@/utils/errors";
 import { useDownloadQueue } from "@/utils/queue";
 import { clearHistory, loadHistory, loadTheme, saveTheme, type ThemeMode } from "@/utils/storage";
 import type { AnalyzeResponse, DownloadFormat, HistoryEntry } from "@/utils/types";
@@ -39,6 +40,7 @@ export function HomeClient() {
     document.documentElement.classList.toggle("dark", initialTheme === "dark");
     document.documentElement.classList.toggle("light", initialTheme === "light");
     setHistory(loadHistory());
+    void wakeApi().catch(() => undefined);
   }, []);
 
   const toggleTheme = useCallback(() => {
@@ -75,8 +77,7 @@ export function HomeClient() {
       setUrl(result.url);
       pushToast("success", "Video analyzed successfully");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Analysis failed";
-      pushToast("error", message);
+      pushToast("error", formatApiError(error));
       setAnalysis(null);
     } finally {
       setAnalyzing(false);

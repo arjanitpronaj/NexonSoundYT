@@ -8,15 +8,16 @@ import type {
   VideoQuality,
 } from "@/utils/types";
 
-const configuredApiBaseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
-const API_BASE_URL =
-  configuredApiBaseUrl ||
-  (process.env.NODE_ENV === "production" ? "https://nexonsoundyt.onrender.com" : "http://localhost:8000");
+const API_BASE_URL = "/api";
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 120000,
 });
+
+export async function wakeApi(): Promise<void> {
+  await api.get("/health");
+}
 
 export async function analyzeVideo(url: string): Promise<AnalyzeResponse> {
   const { data } = await api.post<AnalyzeResponse>("/analyze", { url });

@@ -11,6 +11,7 @@ import {
   startMp3Download,
   startMp4Download,
 } from "@/utils/api";
+import { formatApiError } from "@/utils/errors";
 import { upsertHistory } from "@/utils/storage";
 import type { AudioBitrate, DownloadFormat, QueueItem, VideoQuality } from "@/utils/types";
 
@@ -74,7 +75,7 @@ export function useDownloadQueue(
           : await startMp3Download(item.url, item.quality as AudioBitrate);
       updateItem(item.id, { jobId: response.job_id, status: "queued" });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to start download";
+      const message = formatApiError(error);
       updateItem(item.id, { status: "failed", error: message });
       onToast("error", message);
     }
@@ -114,7 +115,7 @@ export function useDownloadQueue(
         onToast("error", status.error || "Download failed");
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Status polling failed";
+      const message = formatApiError(error);
       updateItem(item.id, { status: "failed", error: message });
       onToast("error", message);
     }

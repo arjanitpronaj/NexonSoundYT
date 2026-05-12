@@ -3,32 +3,73 @@
 from __future__ import annotations
 
 import asyncio
+import json
+import logging
+import urllib.parse
+import urllib.request
 from typing import Any
 
 import yt_dlp
 
 from app.models import AnalyzeResponse, FormatInfo
 from app.utils.helpers import estimate_size_for_quality, normalize_youtube_url, parse_upload_date
+from app.utils.ytdlp_config import YOUTUBE_PLAYER_CLIENTS, build_ytdlp_options
+
+logger = logging.getLogger(__name__)
 
 
 class VideoAnalyzer:
-    def __init__(self) -> None:
-        self._base_opts: dict[str, Any] = {
-            "quiet": True,
-            "no_warnings": True,
-            "noplaylist": True,
-            "skip_download": True,
-            "socket_timeout": 30,
-        }
-
     async def analyze(self, url: str) -> AnalyzeResponse:
         normalized = normalize_youtube_url(url)
-        info = await asyncio.to_thread(self._extract_info, normalized)
-        return self._build_response(normalized, info)
+        try:
+            info = await asyncio.to_thread(self._extract_info, normalized)
+            return self._build_response(normalized, info)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("yt-dlp analyze failed for %s: %s", normalized, exc)
+            return await asyncio.to_thread(self._analyze_with_oembed, normalized)
 
     def _extract_info(self, url: str) -> dict[str, Any]:
-        with yt_dlp.YoutubeDL(self._base_opts) as ydl:
-            return ydl.extract_info(url, download=False)
+        last_error: Exception | None = None
+        for clients in YOUTUBE_PLAYER_CLIENTS:
+            options = build_ytdlp_options(player_clients=clients, skip_download=True)
+            try:
+                with yt_dlp.YoutubeDL(options) as ydl:
+                    return ydl.extract_info(url, download=False)
+            except Exception as exc:  # noqa: BLE001
+                last_error = exc
+                continue
+        if last_error:
+            raise last_error
+        raise RuntimeError("Unable to analyze video.")
+
+    def _analyze_with_oembed(self, url: str) -> AnalyzeResponse:
+        endpoint = f"https://www.youtube.com/oembed?url={urllib.parse.quote(url, safe='')}&format=json"
+        request = urllib.request.Request(endpoint, headers={"User-Agent": "NexonSoundYT/1.0"})
+        with urllib.request.urlopen(request, timeout=30) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+
+        thumbnail = payload.get("thumbnail_url")
+        formats = [
+            FormatInfo(quality="360p", ext="mp4", height=360),
+            FormatInfo(quality="480p", ext="mp4", height=480),
+            FormatInfo(quality="720p", ext="mp4", height=720),
+            FormatInfo(quality="1080p", ext="mp4", height=1080),
+            FormatInfo(quality="best", ext="mp4"),
+        ]
+        estimated_sizes = {quality: None for quality in ["360p", "480p", "720p", "1080p", "2k", "4k", "best"]}
+
+        return AnalyzeResponse(
+            url=url,
+            title=payload.get("title") or "Untitled",
+            channel=payload.get("author_name") or "Unknown channel",
+            upload_date=None,
+            duration=0,
+            thumbnail=thumbnail,
+            description=None,
+            view_count=None,
+            formats=formats,
+            estimated_sizes=estimated_sizes,
+        )
 
     def _build_response(self, url: str, info: dict[str, Any]) -> AnalyzeResponse:
         formats = info.get("formats") or []

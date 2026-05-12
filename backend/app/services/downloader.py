@@ -13,6 +13,7 @@ from app.config import FFMPEG_PATH, MAX_DOWNLOAD_RETRIES, TEMP_DIR
 from app.models import JobStatus
 from app.services.job_manager import JobRecord, job_manager
 from app.utils.helpers import format_eta, format_speed, normalize_youtube_url, safe_filename
+from app.utils.ytdlp_config import build_ytdlp_options
 
 logger = logging.getLogger(__name__)
 
@@ -149,19 +150,13 @@ class DownloadService:
         )
 
     def _base_opts(self, output_dir: Path, progress_hook) -> dict[str, Any]:
-        return {
-            "outtmpl": str(output_dir / "%(title).180B.%(ext)s"),
-            "restrictfilenames": False,
-            "noplaylist": True,
-            "quiet": True,
-            "no_warnings": True,
-            "ffmpeg_location": FFMPEG_PATH,
-            "progress_hooks": [progress_hook],
-            "socket_timeout": 60,
-            "retries": 3,
-            "fragment_retries": 3,
-            "paths": {"home": str(output_dir)},
-        }
+        return build_ytdlp_options(
+            outtmpl=str(output_dir / "%(title).180B.%(ext)s"),
+            restrictfilenames=False,
+            ffmpeg_location=FFMPEG_PATH,
+            progress_hooks=[progress_hook],
+            paths={"home": str(output_dir)},
+        )
 
     def _video_format_selector(self, quality: str) -> str:
         if quality == "best":
