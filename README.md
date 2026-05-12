@@ -125,8 +125,9 @@ Interactive docs are available at `/docs` when the backend is running.
 1. Import the GitHub repository in Vercel.
 2. Set **Root Directory** to `frontend` before deploying.
 3. Leave **Framework Preset** on **Next.js** (do not use `Other`).
-4. Add `NEXT_PUBLIC_API_URL` with your Render backend URL.
-5. Deploy.
+4. In **Build and Output Settings**, keep the default `npm install` and `npm run build` commands. Do not use `npm install --prefix frontend` or `npm run build --prefix frontend` when the root directory is already `frontend`.
+5. Add `NEXT_PUBLIC_API_URL` with your Render backend URL.
+6. Deploy.
 
 If the import screen stays blank, remove any custom install/build commands from the URL, re-import the repo, and set only the root directory to `frontend`.
 
