@@ -126,8 +126,9 @@ Interactive docs are available at `/docs` when the backend is running.
 2. Set **Root Directory** to `frontend` before deploying.
 3. Leave **Framework Preset** on **Next.js** (do not use `Other`).
 4. In **Build and Output Settings**, keep the default `npm install` and `npm run build` commands. Do not use `npm install --prefix frontend` or `npm run build --prefix frontend` when the root directory is already `frontend`.
-5. Add `NEXT_PUBLIC_API_URL` with your Render backend URL.
-6. Deploy.
+5. Set **Output Directory** to `.next`, or leave it empty so Vercel uses the Next.js default. Do not use `frontend/.next` when the root directory is already `frontend`.
+6. Add `NEXT_PUBLIC_API_URL` with your Render backend URL.
+7. Deploy.
 
 If the import screen stays blank, remove any custom install/build commands from the URL, re-import the repo, and set only the root directory to `frontend`.
 
