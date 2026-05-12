@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+frontend/.next/
+.next/
+out/
+dist/
+build/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+backend/temp/
+backend/.pytest_cache/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs and OS
+*.log
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Coverage
+coverage/
+htmlcov/
+
+# Build artifacts
+*.mp4
+*.mp3
+*.webm
+*.m4a

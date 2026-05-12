@@ -1,0 +1,1 @@
+"""NexonSoundYT FastAPI backend package."""

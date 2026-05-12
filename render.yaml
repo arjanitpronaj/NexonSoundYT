@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: nexonsoundyt-api
+    env: docker
+    plan: free
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: CORS_ORIGINS
+        sync: false
+      - key: MAX_PARALLEL_JOBS
+        value: "3"
+      - key: RATE_LIMIT_PER_MINUTE
+        value: "30"
+      - key: JOB_TTL_SECONDS
+        value: "3600"
+      - key: MAX_DOWNLOAD_RETRIES
+        value: "2"
